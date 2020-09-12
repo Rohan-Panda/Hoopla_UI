@@ -1,0 +1,89 @@
+import React, { Component } from 'react';
+import axios from "axios";
+import MyOrders from './MyOrders';
+import {Table, Thead, Tbody, Tr, Th, Td} from 'react-super-responsive-table'
+import 'react-super-responsive-table/dist/SuperResponsiveTableStyle.css'
+
+
+
+const url = "http://localhost:2000/cart1/"
+
+
+class Checkout extends Component {
+   constructor(props) {
+      super(props);
+      this.state = {
+          cartProducts:props.cart,
+          orders:[],
+          getdata:false
+      }
+   }
+   componentDidMount() {
+      this.updateCartDetails()
+    }
+   placeorder = ()=>{
+      var newOrder={
+         "orderId":0,
+         "orderDate":new Date(),
+         "order":[]
+
+      };
+      var order=[];
+      this.state.cartProducts.map((ele,i)=>{
+         order[i]={"prodIds":ele.cartProdIds,
+         "pName":ele.pName,
+         "pPrice":ele.pPrice,
+         "quantity":ele.quantity
+      }
+      })
+         newOrder["order"]=order
+      return newOrder;
+   }
+   updateCartDetails = () => {
+      // console.log("val", val);
+      var order1=this.placeorder()
+      axios.put(url+localStorage.getItem("userid"),order1)
+        .then(response => {
+          console.log("fyour orders are..here  ", response.data.myOrders)
+          this.setState({ orders:response.data.myOrders, getdata:true,errorMessage: "" });
+          console.log("cartData in check out ", this.state.orders);
+        }).catch(error => {
+          console.log("Error in catch")
+          this.setState({ orders: null });
+        });
+    }
+  
+render(){
+  var billAmount=0;
+return <React.Fragment>         
+<div className="mt-5 pt-5">
+<h1 className="mt-5 pt-5"> hiiiii</h1></div>
+{(this.state.getdata)?(<Table>
+	<Thead>
+		<Tr>
+         <Th>Sr.Id</Th>
+			<Th>OrderId</Th>
+			<Th>OrderDate</Th>
+			<Th>Total Amount</Th>
+		</Tr>
+	</Thead>
+   <Tbody>
+   {this.state.orders.map((res,i)=>{
+       return <Tr key={res.orderId}>
+       <Td>{i}</Td>
+       <Td>{res.orderId}</Td>
+       <Td>{res.orderDate}</Td>
+	     {res.order.map((data)=>{
+           return billAmount+=data.quantity*data.pPrice;
+         })}
+         <Td>{billAmount}</Td>
+      </Tr>
+   })}
+	</Tbody>    
+</Table>):null}
+</React.Fragment>   
+   }
+  
+}
+
+export default Checkout;
